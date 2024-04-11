@@ -156,6 +156,11 @@ class Game {
       console.log("special attaque");
     }
 
+    if (player instanceof Wizard) {
+      player.fireBall(this.potentialVictimToAttak(player));
+      console.log("special attaque");
+    }
+
     if (player instanceof Paladin) {
       player.castHealingLighting(this.potentialVictimToAttak(player));
       console.log("special attaque");
@@ -168,6 +173,11 @@ class Game {
 
     if (player instanceof Berzerker) {
       player.castRage();
+      console.log("special attaque");
+    }
+
+    if (player instanceof Troll) {
+      player.beSmart();
       console.log("special attaque");
     }
 
