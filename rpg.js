@@ -1,289 +1,233 @@
-// Character is the global class and have some default attribute and function for ALL character
-class Character {
-    constructor(name, hp, mana, dmg) {
-        this.name = name
-        this.hp = hp;
-        this.dmg = dmg;
-        this.mana = mana;
-        this.state = "playing"
+import Assassin from "./assassin.js";
+import Monk from "./monk.js";
+import Paladin from "./paladin.js";
+import Fighter from "./fighter.js";
+import Berzerker from "./berzerker.js";
+import Wizard from "./wizard.js";
+import Troll from "./troll.js";
+
+let startBtn = document.getElementById("start-btn");
+let allCharacter = [];
+const aiNames = ["Grace", "Ulder", "Moana", "Draven", "Carl", "Putin", "Macron", "Stalin", "Kayla", "Jésus", "Léon", "Léonard"];
+startBtn.addEventListener("click", () => {
+  const newgame = new Game();
+  newgame.setPlayer();
+  newgame.setAiPlayer();
+  newgame.startTurn();
+});
+
+setTimeout(function() {
+}, 3000);
+
+class Game {
+  constructor(turnLeft = 10) {
+    this.turnLeft = turnLeft;
+  }
+
+  sleep(ms) {
+    const dateDebut = Date.now();
+    let dateActuelle = null;
+    do {
+        dateActuelle = Date.now();
+    } while (dateActuelle - dateDebut < ms);
+  }
+
+  setPlayer() {
+    let is_human = true;
+    let classPlayable = [Fighter, Paladin, Monk, Berzerker, Assassin, Wizard, Troll];
+    console.log("1) Fighter, 2) Paladin, 3) Monk, 4) Berzerker, 5) Assassin, 6) Wizard, 7) Troll");
+    let name = prompt("What is your name?");
+    let choice = prompt("What is your class?");
+    let classPlayer = classPlayable[choice - 1];
+    allCharacter.push(new classPlayer(name, is_human));
+  }
+
+  setAiPlayer() {
+    let is_human = false;
+    let allPlayableClass = [];
+    allPlayableClass.push(new Fighter(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Paladin(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Monk(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Berzerker(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Assassin(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Wizard(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    allPlayableClass.push(new Troll(aiNames[Math.floor(Math.random() * aiNames.length)], is_human));
+    for (let i = 0; i < 4; i++) {
+      allCharacter.push(
+        allPlayableClass[Math.floor(Math.random() * allPlayableClass.length)]
+      );
+    }
+  }
+
+  startTurn() {
+    console.log(`It's turn ${this.turnLeft}`);
+    this.whoPlay();
+    setBuff();
+  }
+
+  whoPlay() {
+    let randomCharacter = allCharacter.filter((player) => player.hp > 0);
+    console.log(randomCharacter);
+    for (let i = randomCharacter.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [randomCharacter[i], randomCharacter[j]] = [
+        randomCharacter[j],
+        randomCharacter[i],
+      ];
+    }
+    console.log(randomCharacter);
+    randomCharacter.forEach((player) => {
+      this.sleep(1000)
+      if (player.hp > 0 && player.is_human === true) {
+        console.log("JOUEUR");
+        this.characterAction(player);
+      }
+
+      if (player.hp > 0 && player.is_human === false) {
+        console.log("IA");
+        console.log(`It's the turn of ${player.name} to play !`);
+        this.aiAction(player);
+      }
+  })
+  this.sleep(1000)
+  this.skipTurn();
+
+  }
+
+  aiAction(player) {
+    let aiPossibility = ["1", "2"];
+    let aiChoice
+    let victimArray = allCharacter.filter((char) => char.hp <= player.dmg && char != player)
+
+    if(victimArray.length >= 1) {
+      player.dealDamage(victimArray[Math.floor(Math.random() * victimArray.length)]);
+    } else { aiChoice =
+      aiPossibility[Math.floor(Math.random() * aiPossibility.length)];
+    }
+    if(aiChoice === "1") {
+      player.dealDamage(this.potentialVictimToAttak(player));
+    } else if(aiChoice === "2") {
+      this.castSpecialAttak(player);
+    }
+  }
+  // Define the action of the player.
+  characterAction(player) {
+    console.log("Choose an action !");
+    console.log(player.constructor.name);
+    console.log("1) Simple Attack");
+    console.log("2) Special Attak");
+    let choice = prompt("What do you want to do ?");
+
+    switch (choice) {
+      case "1":
+        player.dealDamage(this.potentialVictimToAttak(player));
+        break;
+      case "2":
+        this.castSpecialAttak(player);
+        break;
+    }
+  }
+
+  potentialVictimToAttak(player) {
+    let potentialVictim = [];
+    let i = 0;
+    allCharacter.forEach((char) => {
+      if (char != player && char.hp > 0) {
+        potentialVictim.push(char);
+        console.log(
+          `${i + 1}) ${char.name} || hp : ${char.hp} || mana : ${char.mana}`
+        );
+        i += 1;
+      }
+    });
+    if(player.is_human === true) {
+    let victim = prompt(`Who do you want to attack ?`);
+    return potentialVictim[victim - 1];
+    } else{
+      return potentialVictim[Math.floor(Math.random() * potentialVictim.length)];
+    }
+  }
+
+
+  castSpecialAttak(player) {
+    console.log(player);
+    if (player instanceof Fighter) {
+      player.castDarkVision(this.potentialVictimToAttak(player));
+      console.log("special attaque");
     }
 
-
-    takeDamage(damage){
-        // this reffer to the victim in dealDamageFFunction
-        if(this.hp < damage){
-            this.hp = 0
-            console.log(`${this.name} has now ${this.hp} hp ! Ouch...`)
-            this.updateStatu() 
-        } else {
-        this.hp = this.hp -= damage
-        console.log(`${this.name} has now ${this.hp} hp ! Ouch...`)
-        this.updateStatu() 
-            }
+    if (player instanceof Paladin) {
+      player.castHealingLighting(this.potentialVictimToAttak(player));
+      console.log("special attaque");
     }
 
-    dealDamage(victim){
-        // check if the victim is already loser
-        if(victim.state === "loser"){
-           console.log(`${victim.name} is alredy dead. Choose another ennemy !`)  
-           // if the victim is alive, we do the attack
-        } else {
-        // this reffer to the charachter how make the attak
-            if(victim.name === "Grace" && victim.buff === true){
-                console.log(`${this.name} attak ${victim.name} and deal ${this.dmg - 2} damages ! 2 damages less !`)
-                // Fighter buff is ON so he take 2dmg less for each attack on this turn
-                victim.takeDamage(this.dmg - 2)
-            } else if(victim.name === "Carl" && victim.buff === true) 
-                console.log(`${this.name} attak ${victim.name} but ${victim.name} have a protection against damage ! (Shadow Hit)`)
-            else {
-        console.log(`${this.name} attak ${victim.name} and deal ${this.dmg} damages !`)
-        // call the take damage function where this gonna be the victim
-        victim.takeDamage(this.dmg) }
+    if (player instanceof Monk) {
+      player.castHeal();
+      console.log("special attaque");
+    }
 
-        if(victim.state === "loser"){
-            this.mana = this.mana += 20
-            console.log(`${this.name} just kill an ennemy ! you win 20 points of mana ! mana : ${this.mana}`)
+    if (player instanceof Berzerker) {
+      player.castRage();
+      console.log("special attaque");
+    }
+
+    if (player instanceof Assassin) {
+      player.castShadowHit(this.potentialVictimToAttak(player));
+      console.log("special attaque");
+    }
+  }
+
+
+  skipTurn() {
+    this.turnLeft -= 1;
+    if (this.turnLeft === 0) {
+      this.GameOver("no more turn");
+    } else if (this.checkStateGame(allCharacter)) {
+      console.log("END GAME");
+    } else {
+      allCharacter.forEach((char) => {
+        if (char.buffState === "on") {
+          char.setBuff(char.buffState);
+        } else {
+          char.setBuff(char.buffState);
         }
-    } }
-
-    updateStatu(){
-        if(this.hp === 0){
-            this.state = "loser"
-            console.log(`${this.name} is now loser. LOSER !`)
-        } 
-    } 
-
-    castSpecialAttak(turnLeft, warrior, otherCharacter){
-
-        console.log(warrior);
-        if(warrior.name === "Grace"){
-            let victimFighter = prompt(`Who do you want to attack ? 1) ${otherCharacter[0].name}, 2) ${otherCharacter[1].name}, 3) ${otherCharacter[2].name}, 4) ${otherCharacter[3].name}`)
-                warrior.castDarkVision(victimFighter, turnLeft)
-                console.log('special attaque')
-           }
-
-           if(warrior.name === "Ulder"){
-            let victimPaladin = prompt(`Who do you want to attack ? 1) ${otherCharacter[0].name}, 2) ${otherCharacter[1].name}, 3) ${otherCharacter[2].name}, 4) ${otherCharacter[3].name}`)
-                    warrior.castHealingLighting(victimPaladin)
-                    console.log('special attaque')
-           }
-
-           if(warrior.name === "Moana"){
-                    warrior.castHeal()
-                    console.log('special attaque')
-           }
-
-           if(warrior.name === "Draven"){
-                    warrior.castRage()
-                    console.log('special attaque')
-           }
-
-           if(warrior.name === "Carl"){
-            
-                    warrior.castShadowHit(victim, turnLeft)
-                    console.log('special attaque')
-           }
+        this.startTurn();
+      });
     }
-
-    setBuff(state){
-        if(state === "on"){
-            this.buff = true;
-        } else{
-            this.buff = false;
-        }
+  }
+  checkStateGame(allCharacter) {
+    let allDead = allCharacter.filter((char) => char.hp === 0);
+    if (allDead.length === allCharacter.length) {
+      this.GameOver("no survivor");
+      return true;
     }
-}
-
-// Fighter class
-class Fighter extends Character{
-    constructor(name, hp = 12, mana = 40, dmg = 4) {
-        super(name, hp, mana, dmg)
-        this.buffState = "off"
-        this.buff = false;
+    if (allDead.length === allCharacter.length - 1) {
+      this.GameOver("one survivor");
+      return true;
     }
+  }
 
-    // do 5dmg with this attack just for one turn, so we changeg the damage to 5 and after the dealdamage function, dmg is restored
-    castDarkVision(victim){
-        if( this.mana < 20){
-            console.log("your mana is too low !")
+  GameOver(reason) {
+    if (reason === "no more turn") {
+      allCharacter.forEach((player) => {
+        if (player.hp > 0) {
+          console.log(`Congratulation ${player.name}, you win !`);
         } else {
-        this.dmg = 5
-        this.mana = this.mana -= 20
-        console.log(`${this.name} cast the Dark Vision attack ! mana -20 : ${this.mana}`)
-        this.dealDamage(victim)
-        this.dmg = 4 }
-        this.buffState = "on"
-    }
-}
-
-// Paladin class.
-class Paladin extends Character{
-    constructor(name, hp = 16, mana = 160, dmg = 3) {
-        super(name, hp, mana, dmg)
-    }
-// make 4damage and heal 5hp. after the dealDamage function, we restore the dmg
-    castHealingLighting(victim){
-        if(this.mana < 40){
-            console.log("your mana is too low")
-        } else {
-        this.dmg = 4
-        this.mana = this.mana -= 40
-        this.hp = this.hp += 5
-        console.log(`${this.name} cast a holy light of heal (hp +5 : ${this.hp}) and burn the enemy ! mana -40 : ${this.mana}`)
-        this.dealDamage(victim)
-        this.dmg = 3 }
-    }
-}
-
-
-// Monk class.
-class Monk extends Character{
-    constructor(name, hp = 8, mana = 200, dmg = 2) {
-        super(name, hp, mana, dmg)
-    }
-    //simple heal so add 8hp
-    castHeal(){
-        if(this.mana < 25){
-            console.log("Your mana is too low !")
-        } else {
-        this.hp = this.hp += 8
-        if(this.hp > 8){
-            this.hp = 8
+          console.log(`Maybe next Time ${player.name}`);
         }
-        this.mana = this.mana -= 25
-        console.log(`${this.name} cast a healing spell ! hp +8 : ${this.hp} | mana -25 : ${this.mana}`)
-    }}
+      });
+    }
+    if (reason === "one survivor") {
+      let lastSurvivor = allCharacter.find((winner) => winner.hp > 0);
+      console.log(
+        `${lastSurvivor.name} is the last survivor and the BIG WINNER !`
+      );
+    }
+
+    if (reason === "no survivor") {
+      console.log(
+        "Wow... It wasn't supposed to happen like this... Do you want to play again ?"
+      );
+    }
+  }
 }
-
-
-// class berzerker
-class Berzerker extends Character{
-    constructor(name, hp = 8, mana = 0, dmg = 4){
-        super(name, hp, mana, dmg)
-    }
-    // add 1 dmg and loose 1hp
-    castRage(){
-        this.hp = this.hp -=1
-        this.dmg = this.dmg +=1
-        console.log(`${this.name} cast Rage ! He loose -1hp (now : ${this.hp} and have +1 damage : ${this.dmg})`)
-    }
-}
-
-// class Assassin
-class Assassin extends Character{
-    constructor(name, hp = 10, mana = 20, dmg = 6){
-        super(name, hp, mana, dmg)
-        this.buffState = "off"
-        this.buff = false;
-    }
-
-    castShadowHit(victim, turnLeft){
-        if(this.mana < 20){
-            console.log("Your mana is too low !")
-        } else {
-        this.mana = this.mana -= 20
-        this.dmg = 7
-        this.dealDamage(victim)
-        console.log(`${this.name} make a Shadow Hit ! `)
-        if(victim.hp > 0){
-            this.takeDamage(7)
-            console.log(`because ${victim.name} is not dead after the Shadow Hit`)
-        } else {console.log(`Shadow hit is very effective !`)}
-        this.dmg = 6 }
-        this.buffState = "on"
-    }
-}
-
-
-class Game{
-    constructor(turnLeft = 3){
-    this.turnLeft = turnLeft
-    }
-
-    startTurn(){
-        console.log(`It's turn ${this.turnLeft}`)
-        this.whoPlay()
-        setBuff()
-    }
-
-    whoPlay(){
-        let randomCharacter = allCharacter.filter((warrior) => warrior.hp > 0)
-        console.log(randomCharacter)
-        for (let i = randomCharacter.length -1; i > 0; i--) {
-            const j = Math.floor(Math.random() * (i + 1));
-            [randomCharacter[i], randomCharacter[j]] = [randomCharacter[j], randomCharacter[i]]
-        }
-        randomCharacter.forEach(warrior => {
-            console.log(`It's the turn of ${warrior.name} to play !`)
-            this.characterAction(warrior)
-        })
-
-        this.skipTurn()
-    }
-
-    characterAction(warrior){
-       let otherCharacter = allCharacter.filter(character => character !== warrior)
-        console.log("Choose an action !")
-        console.log(warrior.constructor.name)
-        let choice = prompt("What do you want to do ? 1) Simple Attack | 2) Special Attack")
-
-        switch(choice){
-            case "1":
-                let victimToAttak = prompt(`Who do you want to attack ? 1) ${otherCharacter[0].name}, 2) ${otherCharacter[1].name}, 3) ${otherCharacter[2].name}, 4) ${otherCharacter[3].name}`)
-                warrior.dealDamage(otherCharacter[victimToAttak - 1])
-                break;
-            case "2":
-                    warrior.castSpecialAttak(this.turnLeft, warrior, otherCharacter)
-                break;
-        }
-    }
-
-
-    skipTurn(){
-        this.turnLeft -= 1
-        console.log("test")
-        if(this.turnLeft === 0){
-            this.GameOver()
-        } else {
-            allCharacter.find((warrior) => warrior.name === "Grace").setBuff(allCharacter.find((warrior) => warrior.name === "Grace").buffState)
-            allCharacter.find((warrior) => warrior.name === "Carl").setBuff(allCharacter.find((warrior) => warrior.name === "Carl").buffState)
-            allCharacter.find((warrior) => warrior.name === "Grace").buffState = "off"
-            allCharacter.find((warrior) => warrior.name === "Carl").buffState = "off"
-            this.startTurn()
-        }
-    }
-
-    GameOver(){
-        allCharacter.forEach(warrior => {
-            if(warrior.hp > 0){
-                console.log(`Congratulation ${warrior.name}, you win !`)
-            } else {
-                console.log(`Maybe next Time ${warrior.name}`)
-            }
-        });
-    }
-
-    
-
-}
-
-const game = new Game()
-
-let allCharacter = []
-const grace = new Fighter("Grace")
-allCharacter.push(grace)
-const ulder = new Paladin("Ulder")
-allCharacter.push(ulder)
-const moana = new Monk("Moana")
-allCharacter.push(moana)
-const draven = new Berzerker("Draven")
-allCharacter.push(draven)
-const carl = new Assassin("Carl")
-allCharacter.push(carl)
-
-console.log(grace)
-console.log(ulder)
-console.log(moana)
-console.log(draven)
-console.log(carl)
-game.startTurn()
