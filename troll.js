@@ -7,7 +7,6 @@ class Troll extends Character {
       this.buff = false;
     }
   
-    // do 5dmg with this attack just for one turn, so we changeg the damage to 5 and after the dealdamage function, dmg is restored
     beSmart() {
      console.log("GNI GNI ME NOT HAPPY ! ME IS SMART")
      console.log("The troll is frustrated by the fact that he is not smart... He gain 3dmg")

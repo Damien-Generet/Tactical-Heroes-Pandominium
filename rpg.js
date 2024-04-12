@@ -6,9 +6,12 @@ import Berzerker from "./berzerker.js";
 import Wizard from "./wizard.js";
 import Troll from "./troll.js";
 
+// define the btn start button
 let startBtn = document.getElementById("start-btn");
 let allCharacter = [];
 const aiNames = ["Grace", "Ulder", "Moana", "Draven", "Carl", "Putin", "Macron", "Stalin", "Kayla", "Jésus", "Léon", "Léonard"];
+
+// start when we click on the btn start button
 startBtn.addEventListener("click", () => {
   const newgame = new Game();
   newgame.setPlayer();
@@ -16,6 +19,7 @@ startBtn.addEventListener("click", () => {
   newgame.startTurn();
 });
 
+// just a sleep function
 setTimeout(function() {
 }, 3000);
 
@@ -32,6 +36,7 @@ class Game {
     } while (dateActuelle - dateDebut < ms);
   }
 
+  // set the player with a prompt
   setPlayer() {
     let is_human = true;
     let classPlayable = [Fighter, Paladin, Monk, Berzerker, Assassin, Wizard, Troll];
@@ -42,6 +47,7 @@ class Game {
     allCharacter.push(new classPlayer(name, is_human));
   }
 
+  // set all ai characters
   setAiPlayer() {
     let is_human = false;
     let allPlayableClass = [];
@@ -58,6 +64,7 @@ class Game {
       );
     }
   }
+
 
   startTurn() {
     console.log(`It's turn ${this.turnLeft}`);
@@ -78,6 +85,7 @@ class Game {
     console.log(randomCharacter);
     randomCharacter.forEach((player) => {
       this.sleep(1000)
+      // define if the player is human or AI and if he have Hp
       if (player.hp > 0 && player.is_human === true) {
         console.log("JOUEUR");
         this.characterAction(player);
@@ -93,7 +101,7 @@ class Game {
   this.skipTurn();
 
   }
-
+// Define the action of the AI
   aiAction(player) {
     let aiPossibility = ["1", "2"];
     let aiChoice
@@ -128,6 +136,8 @@ class Game {
     }
   }
 
+  // we define who we want to attack first we put all character different of the agressor, and then  we add console log too 
+  // show the potential victims and we choose it with a prompt.
   potentialVictimToAttak(player) {
     let potentialVictim = [];
     let i = 0;
@@ -148,7 +158,7 @@ class Game {
     }
   }
 
-
+// start the special attack function if we choose it. Depend which class we are playing
   castSpecialAttak(player) {
     console.log(player);
     if (player instanceof Fighter) {
@@ -186,8 +196,9 @@ class Game {
       console.log("special attaque");
     }
   }
-
-
+    // first we check how many turn left. if 0 so game over
+  // then, check the state of the game
+// this function set the buff on or off for some characther and skip the turn to the next one
   skipTurn() {
     this.turnLeft -= 1;
     if (this.turnLeft === 0) {
@@ -205,6 +216,8 @@ class Game {
       });
     }
   }
+
+// The game is over if everybody is dead or if we hage only one survivor
   checkStateGame(allCharacter) {
     let allDead = allCharacter.filter((char) => char.hp === 0);
     if (allDead.length === allCharacter.length) {
